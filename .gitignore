@@ -1,0 +1,96 @@
+# Miscellaneous
+*.class
+*.log
+*.pyc
+*.swp
+.DS_Store
+.atom/
+.build/
+.buildlog/
+.history
+.svn/
+.swiftpm/
+migrate_working_dir/
+
+# IntelliJ related
+*.iml
+*.ipr
+*.iws
+.idea/
+
+# The .vscode folder contains launch configuration and tasks you configure in
+# VS Code which you may wish to be included in version control, so this line
+# is commented out by default.
+#.vscode/
+
+# Flutter/Dart/Pub related
+.dart_tool/
+.packages
+.pub-cache/
+.pub/
+build/
+ios/Flutter/Flutter.framework
+ios/Flutter/Flutter.podspec
+ios/Flutter/Generated.xcconfig
+ios/Flutter/app.flx
+ios/Flutter/app.zip
+ios/Flutter/flutter_assets/
+ios/Flutter/engine/
+ios/Pods/
+ios/Runner.xcworkspace/
+ios/Runner.xcuserdatad/
+ios/Runner.xcuserstate
+ios/Runner/GeneratedPluginRegistrant.*
+macos/Flutter/Flutter-Debug.xcconfig
+macos/Flutter/Flutter-Release.xcconfig
+macos/Flutter/Flutter-Profile.xcconfig
+macos/Flutter/ephemeral/
+macos/Pods/
+macos/Runner.xcworkspace/
+macos/Runner.xcuserdatad/
+macos/Runner.xcuserstate
+macos/Runner/GeneratedPluginRegistrant.*
+windows/flutter/ephemeral/
+linux/flutter/ephemeral/
+web/.dart_tool/
+web/build/
+*.iml
+
+# VS Code
+.vscode/
+.idea/
+
+# Android
+android/.gradle/
+android/captures/
+android/.idea/
+android/local.properties
+android/app/debug
+android/app/profile
+android/app/release
+android/key.properties
+
+# Xcode
+*.xcworkspace
+*.xcuserstate
+*.xcuserdatad
+*.moved-aside
+DerivedData/
+*.hmap
+*.ipa
+*.app.dSYM.zip
+*.app.dSYM
+
+# Others
+*.log
+*.tmp
+*.swp
+*.DS_Store
+
+# Flutter generated files
+.flutter-plugins
+.flutter-plugins-dependencies
+.flutter-plugins
+.flutter-plugins-dependencies
+.flutter-versions
+.flutter_export_environment.sh
