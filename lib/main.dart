@@ -3,8 +3,20 @@ import 'screens/home_screen.dart';
 import 'screens/report_screen.dart';
 import 'screens/settings_screen.dart';
 
-void main() {
-  runApp(const MyApp());
+import 'models/global_data.dart';
+import 'package:provider/provider.dart';
+
+Future<void> main() async {
+  // 在使用本地存储前，确保 Flutter 绑定已初始化。
+  WidgetsFlutterBinding.ensureInitialized();
+  await GlobalData().init();
+  runApp(
+    // 使用 Provider 提供全局状态（沿用单例实例）
+    ChangeNotifierProvider<GlobalData>.value(
+      value: GlobalData(),
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {

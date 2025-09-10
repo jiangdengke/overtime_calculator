@@ -1,6 +1,15 @@
 import 'package:flutter/material.dart';
 import '../models/global_data.dart';
+import '../services/auth_service.dart';
+import 'package:provider/provider.dart';
+import '../widgets/settings/account_sync_card.dart';
+import '../widgets/settings/settings_salary_section.dart';
+import '../widgets/settings/settings_insurance_section.dart';
+import '../widgets/settings/settings_about_card.dart';
+import '../widgets/settings/salary_edit_dialog.dart';
+import '../widgets/settings/email_login_dialog.dart';
 
+/// 设置页面：薪资/扣除设置、账户与同步、关于。
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
 
@@ -9,158 +18,49 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
-  final GlobalData _globalData = GlobalData();
+  late final AuthService _auth;
 
+  /// 初始化：获取登录服务引用
   @override
   void initState() {
     super.initState();
-    _globalData.addListener(_onDataChanged);
+    _auth = GlobalData().auth;
   }
 
-  @override
-  void dispose() {
-    _globalData.removeListener(_onDataChanged);
-    super.dispose();
+  /// 弹出邮箱输入对话框（本地占位登录）
+  Future<String?> _promptEmail(BuildContext context) async {
+    String? result;
+    await showDialog(
+      context: context,
+      builder: (_) => EmailLoginDialog(onConfirm: (email) => result = email),
+    );
+    return result;
   }
 
-  void _onDataChanged() {
-    if (mounted) {
-      setState(() {});
-    }
-  }
+  // 使用 Provider 自动刷新，无需手动监听
 
+  /// 弹出薪资设置对话框
   void _showSettings() {
+    final data = context.read<GlobalData>();
     showDialog(
       context: context,
-      builder: (context) {
-        double tempBaseSalary = _globalData.baseSalary;
-        double tempSocialRate = _globalData.socialInsuranceRate;
-        double tempHousingRate = _globalData.housingFundRate;
-        double tempCustomRate = _globalData.customHourlyRate;
-        bool useCustomRate = tempCustomRate > 0;
-
-        return StatefulBuilder(
-          builder: (context, setDialogState) {
-            final calculatedRate = tempBaseSalary / (22 * 8);
-            
-            return AlertDialog(
-              title: const Text('薪资设置'),
-              content: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    TextField(
-                      decoration: const InputDecoration(labelText: '底薪（元/月）'),
-                      keyboardType: TextInputType.number,
-                      controller: TextEditingController(text: tempBaseSalary.toString()),
-                      onChanged: (value) {
-                        tempBaseSalary = double.tryParse(value) ?? _globalData.baseSalary;
-                        setDialogState(() {});
-                      },
-                    ),
-                    const SizedBox(height: 16),
-                    
-                    // 时薪设置
-                    Row(
-                      children: [
-                        Checkbox(
-                          value: useCustomRate,
-                          onChanged: (value) {
-                            setDialogState(() {
-                              useCustomRate = value ?? false;
-                              if (!useCustomRate) tempCustomRate = 0;
-                            });
-                          },
-                        ),
-                        const Text('使用自定义时薪'),
-                      ],
-                    ),
-                    if (useCustomRate) 
-                      TextField(
-                        decoration: const InputDecoration(labelText: '自定义时薪（元/小时）'),
-                        keyboardType: TextInputType.number,
-                        controller: TextEditingController(
-                          text: tempCustomRate > 0 ? tempCustomRate.toString() : '',
-                        ),
-                        onChanged: (value) {
-                          tempCustomRate = double.tryParse(value) ?? 0;
-                        },
-                      )
-                    else
-                      Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 8.0),
-                        child: Text(
-                          '计算时薪: ¥${calculatedRate.toStringAsFixed(2)}/小时',
-                          style: TextStyle(color: Colors.grey[600]),
-                        ),
-                      ),
-                    
-                    const SizedBox(height: 16),
-                    Text('五险比例: ${(tempSocialRate * 100).toStringAsFixed(1)}%'),
-                    Slider(
-                      value: tempSocialRate,
-                      min: 0.0,
-                      max: 0.3,
-                      divisions: 30,
-                      label: '${(tempSocialRate * 100).toStringAsFixed(1)}%',
-                      onChanged: (value) {
-                        setDialogState(() {
-                          tempSocialRate = value;
-                        });
-                      },
-                    ),
-                    const SizedBox(height: 8),
-                    Text('住房公积金比例: ${(tempHousingRate * 100).toStringAsFixed(1)}%'),
-                    Slider(
-                      value: tempHousingRate,
-                      min: 0.0,
-                      max: 0.2,
-                      divisions: 20,
-                      label: '${(tempHousingRate * 100).toStringAsFixed(1)}%',
-                      onChanged: (value) {
-                        setDialogState(() {
-                          tempHousingRate = value;
-                        });
-                      },
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      '总扣除比例: ${((tempSocialRate + tempHousingRate) * 100).toStringAsFixed(1)}%',
-                      style: const TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                  ],
-                ),
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: const Text('取消'),
-                ),
-                ElevatedButton(
-                  onPressed: () {
-                    _globalData.updateSalarySettings(
-                      tempBaseSalary, 
-                      tempSocialRate, 
-                      tempHousingRate,
-                      useCustomRate ? tempCustomRate : 0,
-                    );
-                    Navigator.pop(context);
-                  },
-                  child: const Text('保存'),
-                ),
-              ],
-            );
-          },
-        );
-      },
+      builder: (context) => SalaryEditDialog(
+        baseSalary: data.baseSalary,
+        socialRate: data.socialInsuranceRate,
+        housingRate: data.housingFundRate,
+        customHourlyRate: data.customHourlyRate,
+        onSave: (b, s, h, c) => data.updateSalarySettings(b, s, h, c),
+      ),
     );
   }
 
+  /// 构建设置页面 UI
   @override
   Widget build(BuildContext context) {
-    final monthlySalary = _globalData.baseSalary;
-    final socialAmount = monthlySalary * _globalData.socialInsuranceRate;
-    final housingAmount = monthlySalary * _globalData.housingFundRate;
+    final data = context.watch<GlobalData>();
+    final monthlySalary = data.baseSalary;
+    final socialAmount = monthlySalary * data.socialInsuranceRate;
+    final housingAmount = monthlySalary * data.housingFundRate;
     final totalDeduction = socialAmount + housingAmount;
     
     return Scaffold(
@@ -178,108 +78,56 @@ class _SettingsScreenState extends State<SettingsScreen> {
       body: ListView(
         padding: const EdgeInsets.all(16.0),
         children: [
-          // 基本薪资设置卡片
-          Card(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Text(
-                    '基本薪资设置',
-                    style: Theme.of(context).textTheme.titleLarge,
-                  ),
-                ),
-                ListTile(
-                  leading: const Icon(Icons.attach_money),
-                  title: const Text('底薪设置'),
-                  subtitle: Text('¥${_globalData.baseSalary.toStringAsFixed(2)}/月'),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: _showSettings,
-                ),
-                ListTile(
-                  leading: const Icon(Icons.schedule),
-                  title: const Text('时薪设置'),
-                  subtitle: Text(
-                    _globalData.customHourlyRate > 0 
-                        ? '自定义: ¥${_globalData.customHourlyRate.toStringAsFixed(2)}/小时'
-                        : '自动计算: ¥${_globalData.effectiveHourlyRate.toStringAsFixed(2)}/小时'
-                  ),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: _showSettings,
-                ),
-              ],
-            ),
+          // 账户与同步（组件化）
+          AccountSyncCard(
+            isLoggedIn: _auth.isLoggedIn,
+            email: _auth.email,
+            onLoginTap: () async {
+              final email = await _promptEmail(context);
+              if (email != null && email.isNotEmpty) {
+                await _auth.signInWithEmail(email);
+                // Provider 会自动刷新界面
+              }
+            },
+            onLogoutTap: () async {
+              await _auth.signOut();
+            },
+            onSyncDownTap: () async {
+              await data.syncDown();
+              if (mounted) {
+                ScaffoldMessenger.of(context)
+                    .showSnackBar(const SnackBar(content: Text('从云端下载完成（如已配置后端）')));
+              }
+            },
+            onSyncUpTap: () async {
+              await data.syncUp();
+              if (mounted) {
+                ScaffoldMessenger.of(context)
+                    .showSnackBar(const SnackBar(content: Text('上传到云端完成（如已配置后端）')));
+              }
+            },
+          ),
+          const SizedBox(height: 16),
+          // 基本薪资设置（组件化）
+          SettingsSalarySection(
+            baseSalary: data.baseSalary,
+            effectiveHourlyRate: data.effectiveHourlyRate,
+            customHourlyRate: data.customHourlyRate,
+            onEdit: _showSettings,
           ),
           const SizedBox(height: 16),
 
-          // 保险公积金卡片
-          Card(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Text(
-                    '社保公积金设置',
-                    style: Theme.of(context).textTheme.titleLarge,
-                  ),
-                ),
-                ListTile(
-                  leading: const Icon(Icons.security),
-                  title: const Text('五险'),
-                  subtitle: Text('${(_globalData.socialInsuranceRate * 100).toStringAsFixed(1)}% (养老、医疗、失业、工伤、生育)'),
-                  trailing: Text('¥${socialAmount.toStringAsFixed(2)}', style: const TextStyle(color: Colors.red)),
-                  onTap: _showSettings,
-                ),
-                ListTile(
-                  leading: const Icon(Icons.home),
-                  title: const Text('住房公积金'),
-                  subtitle: Text('${(_globalData.housingFundRate * 100).toStringAsFixed(1)}%'),
-                  trailing: Text('¥${housingAmount.toStringAsFixed(2)}', style: const TextStyle(color: Colors.red)),
-                  onTap: _showSettings,
-                ),
-                const Divider(height: 1),
-                ListTile(
-                  leading: const Icon(Icons.calculate, color: Colors.red),
-                  title: const Text('总扣除金额'),
-                  subtitle: Text('${(_globalData.totalInsuranceRate * 100).toStringAsFixed(1)}% 扣除'),
-                  trailing: Text(
-                    '¥${totalDeduction.toStringAsFixed(2)}',
-                    style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.red),
-                  ),
-                ),
-              ],
-            ),
+          // 保险公积金（组件化）
+          SettingsInsuranceSection(
+            monthlyBaseSalary: monthlySalary,
+            socialRate: data.socialInsuranceRate,
+            housingRate: data.housingFundRate,
+            onEdit: _showSettings,
           ),
           const SizedBox(height: 16),
 
-          // 关于信息卡片
-          Card(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Text(
-                    '关于',
-                    style: Theme.of(context).textTheme.titleLarge,
-                  ),
-                ),
-                const ListTile(
-                  leading: Icon(Icons.info_outline),
-                  title: Text('版本'),
-                  subtitle: Text('1.0.0'),
-                ),
-                const ListTile(
-                  leading: Icon(Icons.description_outlined),
-                  title: Text('说明'),
-                  subtitle: Text('记录加班工时，计算加班费用和月度薪资'),
-                ),
-                const SizedBox(height: 8),
-              ],
-            ),
-          ),
+          // 关于（组件化）
+          const SettingsAboutCard(),
         ],
       ),
     );

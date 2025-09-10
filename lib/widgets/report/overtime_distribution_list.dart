@@ -1,0 +1,62 @@
+import 'package:flutter/material.dart';
+
+import '../../models/overtime_record.dart';
+
+/// 加班类型分布列表：按类型统计并展示占比进度条。
+class OvertimeDistributionList extends StatelessWidget {
+  final List<OvertimeRecord> records;
+  const OvertimeDistributionList({super.key, required this.records});
+
+  @override
+  Widget build(BuildContext context) {
+    final distribution = <String, double>{};
+    for (final r in records) {
+      distribution[r.level] = (distribution[r.level] ?? 0) + r.hours;
+    }
+    if (distribution.isEmpty) {
+      return const Center(child: Text('无数据'));
+    }
+
+    final totalHours = distribution.values.fold<double>(0, (sum, h) => sum + h);
+
+    return ListView(
+      children: distribution.entries.map((e) {
+        final percentage = totalHours > 0 ? (e.value / totalHours) : 0.0;
+        return Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(e.key),
+                  Text('${e.value.toStringAsFixed(1)}h (${(percentage * 100).toStringAsFixed(1)}%)'),
+                ],
+              ),
+              const SizedBox(height: 4),
+              LinearProgressIndicator(
+                value: percentage,
+                backgroundColor: Colors.grey[300],
+                valueColor: AlwaysStoppedAnimation(_getLevelColor(e.key)),
+              ),
+            ],
+          ),
+        );
+      }).toList(),
+    );
+  }
+
+  Color _getLevelColor(String level) {
+    switch (level) {
+      case '平时加班':
+        return Colors.blue;
+      case '周末加班':
+        return Colors.orange;
+      case '节假日加班':
+        return Colors.red;
+      default:
+        return Colors.grey;
+    }
+  }
+}

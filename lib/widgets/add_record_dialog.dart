@@ -1,6 +1,11 @@
 import 'package:flutter/material.dart';
 import '../models/global_data.dart';
 
+/// 添加加班记录的对话框。
+///
+/// - 周末日期将自动建议“周末加班”类型
+/// - 根据当前有效时薪动态计算预计加班费
+
 class AddRecordDialog extends StatefulWidget {
   final Function(double, String, double, DateTime) onSubmit;
   final DateTime initialDate;

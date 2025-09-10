@@ -1,5 +1,23 @@
 allprojects {
     repositories {
+        // Flutter 本地 engine maven 仓库（提供 io.flutter:* 工件）
+        val localProps = java.util.Properties()
+        val localPropsFile = java.io.File(rootDir, "local.properties")
+        if (localPropsFile.exists()) {
+            localPropsFile.inputStream().use { localProps.load(it) }
+        }
+        val flutterSdkFromLocal = localProps.getProperty("flutter.sdk")
+        if (flutterSdkFromLocal != null) {
+            maven(url = uri("$flutterSdkFromLocal/bin/cache/artifacts/engine/android"))
+        }
+        // Flutter 官方与国内镜像仓库
+        maven(url = uri("https://storage.flutter-io.cn/download.flutter.io"))
+        maven(url = uri("https://storage.googleapis.com/download.flutter.io"))
+        // 优先使用国内镜像，官方源作为回退
+        maven(url = uri("https://maven.aliyun.com/repository/google"))
+        maven(url = uri("https://maven.aliyun.com/repository/public"))
+        maven(url = uri("https://repo.huaweicloud.com/repository/maven"))
+        maven(url = uri("https://mirrors.cloud.tencent.com/nexus/repository/maven-public"))
         google()
         mavenCentral()
     }
