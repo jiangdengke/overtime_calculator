@@ -128,6 +128,27 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
           // 关于（组件化）
           const SettingsAboutCard(),
+          const SizedBox(height: 16),
+
+          // 记录与展示设置（合并重复开关）
+          Card(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Text('记录与展示', style: Theme.of(context).textTheme.titleLarge),
+                ),
+                SwitchListTile(
+                  title: const Text('同日同类型合并记录'),
+                  subtitle: const Text('开启后，新增记录若与当日同类型相同，将自动合并小时数'),
+                  value: data.mergeDuplicates,
+                  onChanged: (v) => data.updateMergeDuplicates(v),
+                ),
+                const SizedBox(height: 8),
+              ],
+            ),
+          ),
         ],
       ),
     );

@@ -1,0 +1,68 @@
+# 自动构建并发布 APK 到 GitHub Releases
+# 触发方式：
+# 1) 推送符合 v* 格式的标签，例如 v1.2.3
+# 2) 手动触发（workflow_dispatch），可选择是否创建 Release
+
+name: Android Release APK
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      create_release:
+        description: '是否创建并发布到 Releases（true/false）'
+        required: false
+        default: 'true'
+
+jobs:
+  build-android:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write  # 允许创建 Release 与上传附件
+
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 安装 Flutter（stable）
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - name: Flutter 版本
+        run: flutter --version
+
+      - name: 拉取依赖
+        run: flutter pub get
+
+      - name: 构建 APK（按 ABI 拆分）
+        run: flutter build apk --release --split-per-abi
+
+      - name: 收集构建产物
+        run: |
+          mkdir -p dist
+          # 若存在则复制（不同渠道可能未生成所有 ABI）
+          cp build/app/outputs/flutter-apk/app-arm64-v8a-release.apk dist/ 2>/dev/null || true
+          cp build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk dist/ 2>/dev/null || true
+          cp build/app/outputs/flutter-apk/app-x86_64-release.apk dist/ 2>/dev/null || true
+          # 同时输出一个通用 APK（可选），便于快速分发
+          flutter build apk --release
+          cp build/app/outputs/flutter-apk/app-release.apk dist/ 2>/dev/null || true
+
+      - name: 上传构建产物（Artifacts）
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-apk
+          path: dist/*
+
+      - name: 创建 GitHub Release 并上传 APK
+        if: (startsWith(github.ref, 'refs/tags/')) || (github.event.inputs.create_release == 'true')
+        uses: softprops/action-gh-release@v1
+        with:
+          files: dist/*
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+

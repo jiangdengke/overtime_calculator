@@ -129,3 +129,14 @@ lib/
 
 如需我为你接入具体后端、增加导出/导入、或统一更严格的注释模板/代码风格，请提出需求。参考资料：Flutter 官方部署文档 https://docs.flutter.dev/deployment/android
 
+## GitHub Actions 自动发布 APK 到 Releases
+
+- 已内置工作流：`.github/workflows/release.yml`
+- 两种触发方式：
+  - 推送标签：`git tag v1.0.0 && git push origin v1.0.0`
+  - 手动触发：在仓库 Actions 页面选择该工作流，点击 “Run workflow” 执行
+- 工作流会：
+  - 安装 Flutter stable、拉取依赖
+  - 构建 APK（`--split-per-abi`）并额外构建通用 APK
+  - 以 Artifact 形式上传产物，并在推送标签或手动指定创建 Release 时，自动创建 Release 并上传 APK 附件
+- 权限：工作流已设置 `permissions: contents: write`，使用内置 `GITHUB_TOKEN` 上传附件

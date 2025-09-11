@@ -32,7 +32,7 @@ class MonthOverviewCard extends StatelessWidget {
             Row(
               children: [
                 Expanded(
-                  child: StatCard(title: '加班天数', value: '${data.monthlyRecords.length}天', icon: Icons.calendar_today, color: Colors.blue),
+                  child: StatCard(title: '加班天数', value: '${data.monthlyOvertimeDays}天', icon: Icons.calendar_today, color: Colors.blue),
                 ),
                 const SizedBox(width: 8),
                 Expanded(
@@ -50,4 +50,3 @@ class MonthOverviewCard extends StatelessWidget {
     );
   }
 }
-

@@ -26,6 +26,7 @@ class GlobalData extends ChangeNotifier {
   double _socialInsuranceRate = 0.11; // 五险
   double _housingFundRate = 0.12; // 住房公积金
   double _customHourlyRate = 0; // 自定义时薪，0表示使用计算值
+  bool _mergeDuplicates = true; // 同日同类型合并记录
 
   // 数据访问器
   List<OvertimeRecord> get records => _records;
@@ -34,6 +35,7 @@ class GlobalData extends ChangeNotifier {
   double get housingFundRate => _housingFundRate;
   double get totalInsuranceRate => _socialInsuranceRate + _housingFundRate;
   double get customHourlyRate => _customHourlyRate;
+  bool get mergeDuplicates => _mergeDuplicates;
 
   // 登录（本地占位）
   AuthService get auth => _auth;
@@ -47,6 +49,7 @@ class GlobalData extends ChangeNotifier {
     _socialInsuranceRate = settings.socialRate ?? _socialInsuranceRate;
     _housingFundRate = settings.housingRate ?? _housingFundRate;
     _customHourlyRate = settings.customHourlyRate ?? _customHourlyRate;
+    _mergeDuplicates = await _storage.loadMergeDuplicates();
     notifyListeners();
   }
 
@@ -58,6 +61,25 @@ class GlobalData extends ChangeNotifier {
   // 数据操作方法
   /// 新增一条加班记录，并保存到本地
   void addRecord(OvertimeRecord record) {
+    if (_mergeDuplicates) {
+      final idx = _records.indexWhere((r) =>
+          r.date.year == record.date.year &&
+          r.date.month == record.date.month &&
+          r.date.day == record.date.day &&
+          r.level == record.level &&
+          r.multiplier == record.multiplier);
+      if (idx >= 0) {
+        final merged = OvertimeRecord(
+          hours: _records[idx].hours + record.hours,
+          level: record.level,
+          multiplier: record.multiplier,
+          date: record.date,
+        );
+        _records[idx] = merged;
+        _persistRecords();
+        return;
+      }
+    }
     _records.add(record);
     _persistRecords();
   }
@@ -66,6 +88,14 @@ class GlobalData extends ChangeNotifier {
   void removeRecord(int index) {
     if (index >= 0 && index < _records.length) {
       _records.removeAt(index);
+      _persistRecords();
+    }
+  }
+
+  /// 按索引更新一条加班记录，并保存到本地
+  void updateRecordAtIndex(int index, OvertimeRecord record) {
+    if (index >= 0 && index < _records.length) {
+      _records[index] = record;
       _persistRecords();
     }
   }
@@ -122,6 +152,19 @@ class GlobalData extends ChangeNotifier {
     }).toList();
   }
 
+  /// 当月加班天数（按日期去重）
+  int get monthlyOvertimeDays {
+    final now = DateTime.now();
+    final set = <String>{};
+    for (final r in _records) {
+      final d = r.date;
+      if (d.year == now.year && d.month == now.month) {
+        set.add('${d.year}-${d.month}-${d.day}');
+      }
+    }
+    return set.length;
+  }
+
   /// 获取指定日期的所有加班记录
   List<OvertimeRecord> getRecordsByDate(DateTime date) {
     return _records.where((record) {
@@ -138,6 +181,30 @@ class GlobalData extends ChangeNotifier {
       final date = record.date;
       return date.year == month.year && date.month == month.month;
     }).toList();
+  }
+
+  /// 获取某周（周一到周日）的所有加班记录
+  List<OvertimeRecord> getRecordsByWeek(DateTime anchor) {
+    final monday = anchor.subtract(Duration(days: (anchor.weekday + 6) % 7));
+    final sunday = monday.add(const Duration(days: 6));
+    return getRecordsByRange(monday, sunday);
+  }
+
+  /// 获取自定义时间范围内（包含边界）的所有加班记录
+  List<OvertimeRecord> getRecordsByRange(DateTime start, DateTime end) {
+    final s = DateTime(start.year, start.month, start.day);
+    final e = DateTime(end.year, end.month, end.day, 23, 59, 59);
+    return _records.where((r) => r.date.isAfter(s.subtract(const Duration(seconds: 1))) && r.date.isBefore(e.add(const Duration(seconds: 1)))).toList();
+  }
+
+  /// 统计任意记录列表的“去重天数”
+  int uniqueDayCountFor(List<OvertimeRecord> list) {
+    final set = <String>{};
+    for (final r in list) {
+      final d = r.date;
+      set.add('${d.year}-${d.month}-${d.day}');
+    }
+    return set.length;
   }
 
   /// 计算某日加班总时长
@@ -200,6 +267,13 @@ class GlobalData extends ChangeNotifier {
       housingRate: _housingFundRate,
       customHourlyRate: _customHourlyRate,
     );
+    notifyListeners();
+  }
+
+  /// 更新“同日同类型合并记录”开关并持久化
+  Future<void> updateMergeDuplicates(bool value) async {
+    _mergeDuplicates = value;
+    await _storage.saveMergeDuplicates(value);
     notifyListeners();
   }
 }

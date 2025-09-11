@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../models/global_data.dart';
 import '../../models/overtime_record.dart';
+import 'edit_record_dialog.dart';
 
 /// 选中日期的加班详情面板。
 class OvertimeDetailsPanel extends StatelessWidget {
@@ -31,19 +32,49 @@ class OvertimeDetailsPanel extends StatelessWidget {
             style: const TextStyle(fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 8),
-          ...dayRecords.map((OvertimeRecord record) => Padding(
-                padding: const EdgeInsets.symmetric(vertical: 2.0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          ...dayRecords.map((OvertimeRecord record) {
+            final idx = global.records.indexOf(record);
+            final amount = global
+                .calculateDailyOvertime(record.hours, record.multiplier)
+                .toStringAsFixed(2);
+            return Padding(
+              padding: const EdgeInsets.symmetric(vertical: 2.0),
+              child: ListTile(
+                dense: true,
+                contentPadding: EdgeInsets.zero,
+                title: Text('${record.level}  ${record.hours}h'),
+                subtitle:
+                    Text('¥$amount', style: const TextStyle(color: Colors.green)),
+                trailing: Wrap(
+                  spacing: 8,
                   children: [
-                    Text('${record.level} ${record.hours}h'),
-                    Text(
-                      '¥${global.calculateDailyOvertime(record.hours, record.multiplier).toStringAsFixed(2)}',
-                      style: const TextStyle(color: Colors.green, fontWeight: FontWeight.bold),
+                    IconButton(
+                      icon: const Icon(Icons.edit, size: 18),
+                      tooltip: '编辑',
+                      onPressed: idx >= 0
+                          ? () {
+                              showDialog(
+                                context: context,
+                                builder: (_) => EditRecordDialog(
+                                  record: record,
+                                  onSave: (updated) =>
+                                      global.updateRecordAtIndex(idx, updated),
+                                ),
+                              );
+                            }
+                          : null,
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.delete_outline, size: 18),
+                      tooltip: '删除',
+                      onPressed:
+                          idx >= 0 ? () => global.removeRecord(idx) : null,
                     ),
                   ],
                 ),
-              )),
+              ),
+            );
+          }),
         ],
       ),
     );

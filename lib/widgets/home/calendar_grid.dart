@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../models/global_data.dart';
 import '../../models/overtime_record.dart';
+import 'day_records_dialog.dart';
 
 /// 月历网格：展示每一天的加班总时长与状态。
 class CalendarGrid extends StatelessWidget {
@@ -78,18 +79,24 @@ class CalendarGrid extends StatelessWidget {
                 ),
                 if (totalHours > 0) ...[
                   const SizedBox(height: 2),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
-                    decoration: BoxDecoration(
-                      color: _getOvertimeColor(dayRecords),
-                      borderRadius: BorderRadius.circular(10),
+                  GestureDetector(
+                    onTap: () => showDialog(
+                      context: context,
+                      builder: (_) => DayRecordsDialog(date: day),
                     ),
-                    child: Text(
-                      '${totalHours.toStringAsFixed(1)}h',
-                      style: const TextStyle(
-                        fontSize: 10,
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                      decoration: BoxDecoration(
+                        color: _getOvertimeColor(dayRecords),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Text(
+                        '${totalHours.toStringAsFixed(1)}h',
+                        style: const TextStyle(
+                          fontSize: 10,
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
                   ),

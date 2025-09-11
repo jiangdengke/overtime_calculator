@@ -9,19 +9,19 @@ class OvertimeDistributionList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final distribution = <String, double>{};
+    // 统计所有类型（即便该月为 0 也展示，避免“展示不全”的观感）
+    final levels = const ['平时加班', '周末加班', '节假日加班'];
+    final distribution = <String, double>{for (final l in levels) l: 0};
     for (final r in records) {
       distribution[r.level] = (distribution[r.level] ?? 0) + r.hours;
-    }
-    if (distribution.isEmpty) {
-      return const Center(child: Text('无数据'));
     }
 
     final totalHours = distribution.values.fold<double>(0, (sum, h) => sum + h);
 
     return ListView(
-      children: distribution.entries.map((e) {
-        final percentage = totalHours > 0 ? (e.value / totalHours) : 0.0;
+      children: levels.map((key) {
+        final value = distribution[key] ?? 0.0;
+        final percentage = totalHours > 0 ? (value / totalHours) : 0.0;
         return Padding(
           padding: const EdgeInsets.symmetric(vertical: 8.0),
           child: Column(
@@ -30,15 +30,15 @@ class OvertimeDistributionList extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(e.key),
-                  Text('${e.value.toStringAsFixed(1)}h (${(percentage * 100).toStringAsFixed(1)}%)'),
+                  Text(key),
+                  Text('${value.toStringAsFixed(1)}h (${(percentage * 100).toStringAsFixed(1)}%)'),
                 ],
               ),
               const SizedBox(height: 4),
               LinearProgressIndicator(
                 value: percentage,
                 backgroundColor: Colors.grey[300],
-                valueColor: AlwaysStoppedAnimation(_getLevelColor(e.key)),
+                valueColor: AlwaysStoppedAnimation(_getLevelColor(key)),
               ),
             ],
           ),
