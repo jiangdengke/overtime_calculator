@@ -5,6 +5,8 @@ import 'screens/settings_screen.dart';
 
 import 'models/global_data.dart';
 import 'package:provider/provider.dart';
+import 'screens/onboarding_screen.dart';
+import 'package:provider/provider.dart';
 
 Future<void> main() async {
   // 在使用本地存储前，确保 Flutter 绑定已初始化。
@@ -24,13 +26,17 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: '加班工时薪资计算器',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
-        useMaterial3: true,
-      ),
-      home: const MainScreen(),
+    return Consumer<GlobalData>(
+      builder: (context, data, _) {
+        return MaterialApp(
+          title: '加班工时薪资计算器',
+          theme: ThemeData(
+            colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
+            useMaterial3: true,
+          ),
+          home: data.isInitialized ? const MainScreen() : const OnboardingScreen(),
+        );
+      },
     );
   }
 }

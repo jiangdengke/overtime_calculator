@@ -36,6 +36,8 @@ class _SalaryEditDialogState extends State<SalaryEditDialog> {
   late double _housingRate;
   late double _customHourlyRate;
   late bool _useCustomRate;
+  late final TextEditingController _baseController;
+  late final TextEditingController _customController;
 
   /// 初始化：根据传入参数设置临时状态
   @override
@@ -46,6 +48,8 @@ class _SalaryEditDialogState extends State<SalaryEditDialog> {
     _housingRate = widget.housingRate;
     _customHourlyRate = widget.customHourlyRate;
     _useCustomRate = _customHourlyRate > 0;
+    _baseController = TextEditingController(text: _baseSalary.toString());
+    _customController = TextEditingController(text: _customHourlyRate > 0 ? _customHourlyRate.toString() : '');
   }
 
   /// 计算自动时薪（底薪 / (22 工作日 * 8 小时)）
@@ -63,8 +67,8 @@ class _SalaryEditDialogState extends State<SalaryEditDialog> {
             TextField(
               decoration: const InputDecoration(labelText: '底薪（元/月）'),
               keyboardType: TextInputType.number,
-              controller: TextEditingController(text: _baseSalary.toString()),
-              onChanged: (value) => setState(() => _baseSalary = double.tryParse(value) ?? _baseSalary),
+              controller: _baseController,
+              onChanged: (value) => setState(() => _baseSalary = double.tryParse(value) ?? 0),
             ),
             const SizedBox(height: 16),
 
@@ -87,8 +91,8 @@ class _SalaryEditDialogState extends State<SalaryEditDialog> {
               TextField(
                 decoration: const InputDecoration(labelText: '自定义时薪（元/小时）'),
                 keyboardType: TextInputType.number,
-                controller: TextEditingController(text: _customHourlyRate > 0 ? _customHourlyRate.toString() : ''),
-                onChanged: (value) => _customHourlyRate = double.tryParse(value) ?? 0,
+                controller: _customController,
+                onChanged: (value) => setState(() => _customHourlyRate = double.tryParse(value) ?? 0),
               )
             else
               Padding(
@@ -142,4 +146,3 @@ class _SalaryEditDialogState extends State<SalaryEditDialog> {
     );
   }
 }
-

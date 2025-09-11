@@ -51,6 +51,7 @@ class _ReportScreenState extends State<ReportScreen> {
     }
     final totalHours = monthRecords.fold<double>(0, (s, r) => s + r.hours);
     final uniqueDays = _globalData.uniqueDayCountFor(monthRecords);
+    final notReady = _globalData.effectiveHourlyRate == 0 && _globalData.baseSalary == 0;
 
     return Scaffold(
       appBar: AppBar(
@@ -69,15 +70,29 @@ class _ReportScreenState extends State<ReportScreen> {
             ),
             const SizedBox(height: 16),
 
-            // 薪资详情卡片（组件化）
-            SalaryBreakdownCard(
-              year: _selectedMonth.year,
-              month: _selectedMonth.month,
-              baseSalary: _globalData.baseSalary,
-              overtimeAmount: overtimeAmount,
-              socialRate: _globalData.socialInsuranceRate,
-              housingRate: _globalData.housingFundRate,
-            ),
+            // 薪资详情或引导提示
+            if (notReady)
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Row(
+                    children: const [
+                      Icon(Icons.info_outline, color: Colors.blueAccent),
+                      SizedBox(width: 8),
+                      Expanded(child: Text('未完成基础设置，无法计算薪资明细。请前往设置完善底薪/时薪与比例。')),
+                    ],
+                  ),
+                ),
+              )
+            else
+              SalaryBreakdownCard(
+                year: _selectedMonth.year,
+                month: _selectedMonth.month,
+                baseSalary: _globalData.baseSalary,
+                overtimeAmount: overtimeAmount,
+                socialRate: _globalData.socialInsuranceRate,
+                housingRate: _globalData.housingFundRate,
+              ),
             const SizedBox(height: 16),
 
             // 统计卡片（组件化行）

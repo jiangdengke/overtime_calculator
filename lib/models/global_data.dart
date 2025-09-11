@@ -22,9 +22,9 @@ class GlobalData extends ChangeNotifier {
 
   // 数据存储（使用强类型模型，而非 Map）
   List<OvertimeRecord> _records = [];
-  double _baseSalary = 5000.0;
-  double _socialInsuranceRate = 0.11; // 五险
-  double _housingFundRate = 0.12; // 住房公积金
+  double _baseSalary = 0.0;
+  double _socialInsuranceRate = 0.0; // 五险
+  double _housingFundRate = 0.0; // 住房公积金
   double _customHourlyRate = 0; // 自定义时薪，0表示使用计算值
   bool _mergeDuplicates = true; // 同日同类型合并记录
 
@@ -36,6 +36,10 @@ class GlobalData extends ChangeNotifier {
   double get totalInsuranceRate => _socialInsuranceRate + _housingFundRate;
   double get customHourlyRate => _customHourlyRate;
   bool get mergeDuplicates => _mergeDuplicates;
+  bool get isInitialized => _storageInitialized;
+
+  // 内部状态：首次引导是否完成（从本地加载）
+  bool _storageInitialized = false;
 
   // 登录（本地占位）
   AuthService get auth => _auth;
@@ -50,6 +54,7 @@ class GlobalData extends ChangeNotifier {
     _housingFundRate = settings.housingRate ?? _housingFundRate;
     _customHourlyRate = settings.customHourlyRate ?? _customHourlyRate;
     _mergeDuplicates = await _storage.loadMergeDuplicates();
+    _storageInitialized = await _storage.loadInitialized();
     notifyListeners();
   }
 
@@ -107,6 +112,10 @@ class GlobalData extends ChangeNotifier {
     _housingFundRate = housingRate;
     _customHourlyRate = customRate;
     _persistSettings();
+    if (!_storageInitialized) {
+      _storageInitialized = true;
+      _storage.saveInitialized(true);
+    }
   }
 
   // 计算方法
@@ -268,6 +277,15 @@ class GlobalData extends ChangeNotifier {
       customHourlyRate: _customHourlyRate,
     );
     notifyListeners();
+  }
+
+  /// 主动标记为已完成首次引导
+  Future<void> completeInitialSetup() async {
+    if (!_storageInitialized) {
+      _storageInitialized = true;
+      await _storage.saveInitialized(true);
+      notifyListeners();
+    }
   }
 
   /// 更新“同日同类型合并记录”开关并持久化

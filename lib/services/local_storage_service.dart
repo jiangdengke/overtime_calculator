@@ -16,6 +16,7 @@ class LocalStorageService {
   static const _kCustomHourlyRateKey = 'settings.customHourlyRate.v1';
   static const _kUserEmailKey = 'auth.userEmail.v1';
   static const _kMergeDuplicatesKey = 'settings.mergeDuplicates.v1';
+  static const _kInitializedKey = 'settings.initialized.v1';
 
   LocalStorageService._();
   static final LocalStorageService _instance = LocalStorageService._();
@@ -88,5 +89,17 @@ class LocalStorageService {
   Future<void> saveMergeDuplicates(bool value) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(_kMergeDuplicatesKey, value);
+  }
+
+  /// 是否已完成首次设置引导（默认 false）
+  Future<bool> loadInitialized() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool(_kInitializedKey) ?? false;
+  }
+
+  /// 标记已完成首次设置引导
+  Future<void> saveInitialized(bool value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_kInitializedKey, value);
   }
 }
