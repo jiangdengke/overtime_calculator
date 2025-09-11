@@ -21,6 +21,7 @@ class _EditRecordDialogState extends State<EditRecordDialog> {
   late double _hours;
   late String _level;
   late double _multiplier;
+  late final TextEditingController _hoursController;
 
   final Map<String, double> levelMultipliers = const {
     '平时加班': 1.5,
@@ -35,6 +36,13 @@ class _EditRecordDialogState extends State<EditRecordDialog> {
     _hours = widget.record.hours;
     _level = widget.record.level;
     _multiplier = widget.record.multiplier;
+    _hoursController = TextEditingController(text: _hours.toString());
+  }
+
+  @override
+  void dispose() {
+    _hoursController.dispose();
+    super.dispose();
   }
 
   /// 构建对话框 UI
@@ -54,8 +62,8 @@ class _EditRecordDialogState extends State<EditRecordDialog> {
             TextField(
               decoration: const InputDecoration(labelText: '加班小时数', suffixText: '小时'),
               keyboardType: TextInputType.number,
-              controller: TextEditingController(text: _hours.toString()),
-              onChanged: (v) => setState(() => _hours = double.tryParse(v) ?? _hours),
+              controller: _hoursController,
+              onChanged: (v) => setState(() => _hours = double.tryParse(v) ?? 0),
             ),
             const SizedBox(height: 12),
             DropdownButtonFormField<String>(
@@ -107,4 +115,3 @@ class _EditRecordDialogState extends State<EditRecordDialog> {
     );
   }
 }
-
