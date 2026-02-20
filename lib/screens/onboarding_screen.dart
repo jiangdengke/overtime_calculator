@@ -127,7 +127,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 value: _socialRate,
                 min: 0.0,
                 max: 0.3,
-                divisions: 30,
+                divisions: 60, // 0.5% 步进
                 label: '${(_socialRate * 100).toStringAsFixed(1)}%',
                 onChanged: (value) => setState(() => _socialRate = value),
               ),
@@ -137,7 +137,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 value: _housingRate,
                 min: 0.0,
                 max: 0.2,
-                divisions: 20,
+                divisions: 40, // 0.5% 步进
                 label: '${(_housingRate * 100).toStringAsFixed(1)}%',
                 onChanged: (value) => setState(() => _housingRate = value),
               ),
