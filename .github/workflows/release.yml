@@ -38,7 +38,8 @@ jobs:
         run: flutter pub get
 
       - name: 构建 APK（按 ABI 拆分）
-        run: flutter build apk --release --split-per-abi
+        # 仅保留主流 arm64 + 兼容老 32 位机（armeabi-v7a）
+        run: flutter build apk --release --target-platform android-arm,android-arm64 --split-per-abi
 
       - name: 收集构建产物
         run: |
@@ -46,10 +47,6 @@ jobs:
           # 若存在则复制（不同渠道可能未生成所有 ABI）
           cp build/app/outputs/flutter-apk/app-arm64-v8a-release.apk dist/ 2>/dev/null || true
           cp build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk dist/ 2>/dev/null || true
-          cp build/app/outputs/flutter-apk/app-x86_64-release.apk dist/ 2>/dev/null || true
-          # 同时输出一个通用 APK（可选），便于快速分发
-          flutter build apk --release
-          cp build/app/outputs/flutter-apk/app-release.apk dist/ 2>/dev/null || true
 
       - name: 上传构建产物（Artifacts）
         uses: actions/upload-artifact@v4
@@ -65,4 +62,3 @@ jobs:
           generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
