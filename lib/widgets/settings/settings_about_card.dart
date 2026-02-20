@@ -17,7 +17,7 @@ class SettingsAboutCard extends StatelessWidget {
           ListTile(
             leading: Icon(Icons.info_outline),
             title: Text('版本'),
-            subtitle: Text('1.0.0'),
+            subtitle: Text('1.0.7'),
           ),
           ListTile(
             leading: Icon(Icons.description_outlined),
