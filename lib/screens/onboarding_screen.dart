@@ -78,7 +78,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const SizedBox(height: 8),
-              Text('欢迎使用加班工时薪资计算器', style: Theme.of(context).textTheme.titleLarge),
+              Text('欢迎使用加班费计算器', style: Theme.of(context).textTheme.titleLarge),
               const SizedBox(height: 8),
               Text('在开始之前，请完成基础设置：', style: Theme.of(context).textTheme.bodyMedium),
               const SizedBox(height: 8),

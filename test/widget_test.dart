@@ -21,7 +21,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('欢迎使用加班工时薪资计算器'), findsOneWidget);
+    expect(find.text('欢迎使用加班费计算器'), findsOneWidget);
     expect(find.text('开始使用'), findsOneWidget);
   });
 }

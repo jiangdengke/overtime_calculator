@@ -29,7 +29,7 @@ class MyApp extends StatelessWidget {
     return Consumer<GlobalData>(
       builder: (context, data, _) {
         return MaterialApp(
-          title: '加班工时薪资计算器',
+          title: '加班费计算器',
           theme: ThemeData(
             colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
             useMaterial3: true,
